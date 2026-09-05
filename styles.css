@@ -1,0 +1,16 @@
+#tjb-panel{position:fixed;right:18px;top:38%;width:268px;z-index:2147483647;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:rgba(28,28,30,.94);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 32px rgba(0,0,0,.28);backdrop-filter:blur(16px);overflow:hidden}
+.tjb-header{display:flex;justify-content:space-between;padding:10px 12px 8px;font-size:12px;opacity:.72}.tjb-list{padding:0 8px 8px}
+.tjb-row,.tjb-add{width:100%;border:0;border-radius:10px;background:transparent;color:inherit;display:flex;align-items:center;gap:9px;padding:11px 10px;text-align:left;cursor:pointer;font-size:13px}
+.tjb-row:hover,.tjb-add:hover{background:rgba(255,255,255,.09)}.tjb-index{width:24px;height:24px;flex:0 0 24px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,.11);font-size:11px}
+.tjb-name{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tjb-remove{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;font-size:18px;opacity:.58}.tjb-remove:hover{background:rgba(255,255,255,.12);opacity:1}
+.tjb-add{justify-content:center;opacity:.82}.tjb-add-ready{font-weight:600;background:rgba(255,255,255,.08)}
+.tjb-found-highlight{background:rgba(255,215,0,.16);border-bottom:2px solid rgba(255,215,0,.85);border-radius:2px}.tjb-found-flash{box-shadow:0 0 0 4px rgba(255,215,0,.35);transition:box-shadow .3s}
+.tjb-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);z-index:2147483647;padding:10px 14px;border-radius:10px;background:rgba(20,20,20,.95);color:#fff;opacity:0;transition:.18s;pointer-events:none}.tjb-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.tjb-row{padding:3px 4px!important;gap:4px!important}
+.tjb-jump{flex:1;min-width:0;border:0;background:transparent;color:inherit;display:flex;align-items:center;gap:9px;padding:8px 6px;text-align:left;cursor:pointer;border-radius:8px}
+.tjb-jump:hover{background:rgba(255,255,255,.08)}
+.tjb-replace{border:0;background:rgba(255,255,255,.09);color:inherit;border-radius:8px;padding:7px 8px;font-size:11px;cursor:pointer}
+.tjb-replace:hover{background:rgba(255,255,255,.16)}
+.tjb-remove{border:0;background:transparent;color:inherit;cursor:pointer}
+.tjb-replace-hint{text-align:center;padding:7px 4px 3px;font-size:11px;opacity:.55}

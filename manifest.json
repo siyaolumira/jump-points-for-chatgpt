@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Jump Points for ChatGPT",
+  "version": "0.12.1",
+  "description": "Keep three places in reach. Jump back instantly in long ChatGPT conversations.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
