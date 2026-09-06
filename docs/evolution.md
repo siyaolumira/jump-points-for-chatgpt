@@ -20,7 +20,8 @@ Jump Points began as a tiny experiment: can a Chrome extension reliably return t
 | v0.11 | Added cross-chat readiness gating and smoother segmented seek | Correct architecture, but introduced another missing-helper regression. |
 | v0.11.1 | Restored creation logic and added static regression checks | Known-good reliability milestone. |
 | v0.12 | Replaced segmented seeking with continuous adaptive cruise | Much smoother long-distance navigation. |
-| v0.12.1 | Increased cruise speed while preserving adaptive slowdown | Current public-beta interaction milestone. |
+| v0.12.1 | Increased cruise speed while preserving adaptive slowdown | Established the public-beta navigation baseline. |
+| v0.12.2 | Added interruptible seeking and further cruise tuning | Automatic navigation no longer takes control away from the user: any pointer interaction can stop an active seek, and selecting another Jump Point immediately starts a new one. |
 
 ## The key discovery
 
@@ -34,3 +35,11 @@ That separated the problem into two layers:
 The current implementation follows that separation:
 
 `conversation navigation → readiness gate → adaptive seek → anchor appears → range match → precise landing`
+
+## Current scope
+
+Jump Points currently works with **signed-in ChatGPT conversations**. Logged-out ChatGPT sessions are not supported.
+
+The extension intentionally maintains only **three global Jump Points**. They form a temporary working set for active navigation rather than a permanent bookmark collection.
+
+Automatic seeking is also deliberately interruptible. A jump may navigate through virtualized content on its own, but user interaction immediately takes control back.

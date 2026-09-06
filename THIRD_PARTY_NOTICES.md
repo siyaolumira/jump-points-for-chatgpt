@@ -1,23 +1,16 @@
 # Third-Party Notices
 
-Jump Points for ChatGPT includes portions of code adapted from third-party
-open-source software.
+Jump Points for ChatGPT includes portions of code adapted from third-party open-source software.
 
 ## Threadmark
 
-Portions of the text re-anchoring implementation in Jump Points for ChatGPT
-were adapted from Threadmark:
+Portions of the text re-anchoring implementation in Jump Points for ChatGPT were adapted from Threadmark:
 
 https://github.com/ccheney/threadmark
 
-The adapted portions relate to locating selected text within the DOM,
-reconstructing DOM ranges, handling whitespace-normalized matching, and
-using surrounding textual context to disambiguate candidate matches.
+The adapted portions relate to locating selected text within the DOM, reconstructing DOM ranges, handling whitespace-normalized matching, and using surrounding textual context to disambiguate candidate matches.
 
-Jump Points for ChatGPT adds its own navigation and restoration system around
-this anchoring layer, including scroll-host detection, virtualized-content
-seeking, bidirectional restoration, continuous cruise, cross-conversation
-readiness handling, and the three-point working-set interaction model.
+Jump Points for ChatGPT adds its own navigation and restoration system around this anchoring layer, including scroll-host detection, virtualized-content seeking, bidirectional restoration, continuous cruise, cross-conversation readiness handling, and the three-point working-set interaction model.
 
 Threadmark is licensed under the MIT License.
 

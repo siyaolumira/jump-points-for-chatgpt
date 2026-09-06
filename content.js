@@ -3,6 +3,17 @@
   if(window.__threeJumpV121Loaded) return;
   window.__threeJumpV121Loaded=true;
   const state={bookmarks:[], selection:null};
+  let activeSeek=null;
+
+  function cancelSeek(){
+    if(!activeSeek)return;
+    activeSeek.cancelled=true;
+    activeSeek=null;
+  }
+// Any user pointer interaction takes control back from automatic seeking
+  document.addEventListener("pointerdown",()=>{
+    cancelSeek();
+  },true);
 
   const get=k=>new Promise(r=>chrome.storage.local.get(k,r));
   const set=o=>new Promise(r=>chrome.storage.local.set(o,r));
@@ -244,7 +255,7 @@
 
   function wait(ms){return new Promise(r=>setTimeout(r,ms))}
 
-  async function continuousCruise(direction,b,maxMs=55000){
+  async function continuousCruise(direction,b,seek,maxMs=55000){
     let h=scrollHost();
     let lastTs=performance.now();
     let lastSearch=0;
@@ -254,16 +265,22 @@
     let stableEdge=0;
     let found=false;
 
-    // px/sec. Start moderately fast; adaptive logic below slows down when
-    // ChatGPT appears to be materializing/reshaping older content.
-    let speed=2350;
-    const minSpeed=1150;
-    const maxSpeed=3500;
+    // px/sec. Cruise quickly through long conversations; adaptive logic below
+    // slows down when ChatGPT appears to be materializing/reshaping content.
+    let speed=6500;
+    const minSpeed=2800;
+    const maxSpeed=10000;
     const started=performance.now();
 
     return await new Promise(resolve=>{
-      async function frame(ts){
-        if(found) return;
+      function frame(ts){
+        if(found)return;
+    
+        if(seek.cancelled){
+          found=true;
+          resolve(false);
+          return;
+        }
 
         // ChatGPT may replace the host during virtualization. Re-detect
         // periodically without interrupting visual motion.
@@ -277,7 +294,6 @@
 
         const before=h.scrollTop;
         h.scrollTop=before + direction*speed*dt;
-        const after=h.scrollTop;
 
         // Search independently of animation frames. This avoids expensive DOM
         // Range scans at 60fps while keeping the scroll visually continuous.
@@ -305,7 +321,7 @@
           // gradually accelerate.
           if(heightChanged) speed=Math.max(minSpeed,speed*.90);
           else if(moved) speed=Math.min(maxSpeed,speed*1.08);
-
+        
           lastTop=top;
           lastHeight=height;
           lastMetrics=ts;
@@ -313,7 +329,12 @@
           if(stableEdge>=5){
             // Do one delayed final search before declaring a real edge.
             setTimeout(()=>{
-              if(found) return;
+              if(found)return;
+              if(seek.cancelled){
+                found=true;
+                resolve(false);
+                return;
+              }
               if(jumpHere(b)){found=true;resolve(true)}
               else {found=true;resolve(false)}
             },500);
@@ -333,12 +354,13 @@
     });
   }
 
-  async function seekDirection(direction,b){
-    return continuousCruise(direction,b);
+  async function seekDirection(direction,b,seek){
+    return continuousCruise(direction,b,seek);
   }
 
-  async function progressiveSeek(b){
-    if(jumpHere(b)) return true;
+  async function progressiveSeek(b,seek){
+    if(seek.cancelled)return false;
+    if(jumpHere(b))return true;
 
     // Approximate progress is only a hint for which direction to try first.
     // We no longer trust it as a stopping position.
@@ -347,12 +369,14 @@
     const first=saved<=current?-1:1;
 
     // Exhaust the likely direction all the way to a verified real edge.
-    if(await seekDirection(first,b)) return true;
+    if(await seekDirection(first,b,seek))return true;
+    if(seek.cancelled)return false;
 
     // If the coarse hint was wrong (common after cross-chat load or when
     // virtualization changed the document height), sweep the other direction
     // as well. This makes restoration exhaustive rather than percentage-based.
-    if(await seekDirection(-first,b)) return true;
+    if(await seekDirection(-first,b,seek))return true;
+    if(seek.cancelled)return false;
 
     return jumpHere(b);
   }
@@ -378,12 +402,21 @@
 
   async function jump(b){
     const target=b.conversationId||convId(b.conversationUrl);
+  
     if(target&&convId()!==target){
       await set({[PENDING]:b.id});
       location.assign(b.conversationUrl);
       return;
     }
-    if(!(await progressiveSeek(b)))
+  
+    const seek={cancelled:false};
+    activeSeek=seek;
+  
+    const ok=await progressiveSeek(b,seek);
+  
+    if(activeSeek===seek)activeSeek=null;
+  
+    if(!ok&&!seek.cancelled)
       toast("Jump point couldn't be restored.");
   }
 
@@ -453,9 +486,16 @@
     // messages, scroll host, and native scroll restoration have settled.
     await waitForCrossChatReady(target);
 
-    const ok=await progressiveSeek(b);
+    const seek={cancelled:false};
+    activeSeek=seek;
+    
+    const ok=await progressiveSeek(b,seek);
+    
+    if(activeSeek===seek)activeSeek=null;
+    
     await set({[PENDING]:null});
-    if(!ok)toast("Opened chat, but jump point couldn't be restored.");
+    if(!ok&&!seek.cancelled)
+      toast("Opened chat, but jump point couldn't be restored.");
   }
 
   async function saveIntoSlot(slot=null){

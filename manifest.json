@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Jump Points for ChatGPT",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "description": "Keep three places in reach. Jump back instantly in long ChatGPT conversations.",
   "permissions": [
     "storage"
