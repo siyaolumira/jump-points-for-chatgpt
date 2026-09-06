@@ -2,9 +2,7 @@
 
 **Keep three places in reach. Jump back instantly.**
 
-Long ChatGPT conversations are useful, but getting back to the exact place you were working from can be surprisingly painful.
-
-Jump Points gives you **three temporary positions** you can drop anywhere in your ChatGPT conversations and return to later.
+Jump Points gives you three temporary positions you can return to while working in long ChatGPT conversations.
 
 **Select → Add → Jump → Replace.**
 
@@ -12,97 +10,88 @@ When a Jump Point stops being useful, replace it with where you need to be next.
 
 ## What it does
 
-- **Three global Jump Points** — keep the few places that matter right now.
-- **Selection-based anchors** — select the text you want to return to.
-- **Same-chat and cross-chat jumps** — use ChatGPT's sidebar normally; Jump Points handles the position.
-- **Long-distance restoration** — navigates through lazily rendered conversations until the saved text becomes available.
-- **Fast replacement** — when all three slots are full, select new text and replace any existing point.
-- **Local storage** — Jump Point data stays in your browser.
+- Keep up to **3 global Jump Points**
+- Create a point from selected text
+- Jump back within the same conversation
+- Jump across ChatGPT conversations
+- Restore positions even in long, virtualized conversations
+- Replace old Jump Points quickly as your focus changes
+- Store Jump Points locally in your browser
 
-## How to use it
+## How to use
 
-### Add a Jump Point
+### Add
 
-1. Select text anywhere in a ChatGPT conversation.
-2. Click **Add selected text**.
-3. Give the Jump Point a short name.
+Select some text in a ChatGPT conversation, then click **+ Add selected text** and give the Jump Point a name.
 
-### Jump back
+### Jump
 
-Click the name of any saved Jump Point. If it belongs to another conversation, Jump Points opens that conversation first and then restores the saved position.
+Click any saved Jump Point to return to it.
 
-For very long conversations, you may see the page smoothly travel through older messages while ChatGPT renders them. Once the saved text becomes available, Jump Points lands on the exact anchor.
+For distant positions in long conversations, Jump Points automatically navigates through the conversation until the target becomes available, then lands on the selected text.
 
-### Replace a Jump Point
+### Replace
 
-You always have three slots.
+Select a new piece of text while your three slots are full.
 
-When all three are in use:
-
-1. Select the new text you want to keep.
-2. Choose **Replace** on the Jump Point you no longer need.
-3. The old point is immediately replaced by the new one.
-
-There is no need to delete old bookmarks, create folders, or maintain a growing archive.
+Each existing Jump Point will show a **Replace** action. Choose the point you no longer need, and the new location takes its place.
 
 ## Why only three?
 
-The limit is intentional.
+Jump Points is designed as a **working set**, not an archive.
 
-Jump Points are a **working set, not an archive**. They are meant to hold the few places you are actively moving between while working through long conversations.
+The goal is not to build a permanent collection of bookmarks. It is to keep the few places you are actively moving between immediately available.
 
-When a point stops being useful, replace it.
+**Jump Points are disposable, not collectible.**
 
-> **Jump Points are disposable, not collectible.**
+## Install — Public Beta
 
-## Install the public beta
-
-Jump Points is not yet on the Chrome Web Store.
-
-1. Download or clone this repository.
-2. Open Chrome and go to `chrome://extensions`.
-3. Turn on **Developer mode**.
-4. Choose **Load unpacked**.
-5. Select this repository folder.
+1. Click **Code → Download ZIP** on this repository, then unzip the downloaded file.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode**.
+4. Click **Load unpacked**.
+5. Select the unzipped repository folder.
 6. Open ChatGPT, select some text, and create your first Jump Point.
 
 ## How it works
 
-A Jump Point stores the selected text together with surrounding context and the originating ChatGPT conversation. When you jump back, the extension searches the rendered DOM for the anchor and reconstructs the matching range.
+Restoring a position in a long ChatGPT conversation is more complicated than scrolling to a saved percentage.
 
-Very long ChatGPT conversations may not have older messages rendered yet. In that case, Jump Points uses a continuous adaptive seek to move through the conversation while periodically checking for the anchor.
+Older parts of a conversation may not currently exist in the DOM. Jump Points therefore separates restoration into two problems:
 
-Once the target becomes available:
+1. **Navigation** — move through the conversation until the relevant content is rendered.
+2. **Re-anchoring** — locate the selected text and surrounding context, reconstruct its DOM range, and land precisely on it.
 
-`conversation → adaptive seek → anchor found → precise landing`
+The navigation layer handles scroll-host detection, virtualized content, long-distance bidirectional seeking, cross-conversation restoration, and continuous adaptive scrolling.
 
-Cross-chat jumps also wait for the destination conversation to finish initializing before position restoration begins.
+More details are available in [`docs/evolution.md`](docs/evolution.md).
 
 ## Privacy
 
-Jump Points is designed to work locally.
+Jump Points reads user-selected text and nearby textual context from ChatGPT pages solely to create and restore navigation anchors.
 
-- No Jump Points account is required.
-- No remote backend is required.
-- Saved Jump Point data is stored in Chrome extension storage.
-- The extension does not intentionally send saved conversation text to an external server.
+This data is stored locally using Chrome extension storage and is not intentionally transmitted to an external server.
 
-Because Jump Points needs to create and restore anchors, it operates on ChatGPT page content in your browser.
+## Acknowledgements
+
+Portions of the text re-anchoring implementation were adapted from [Threadmark](https://github.com/ccheney/threadmark), an open-source project licensed under the MIT License.
+
+Jump Points builds its own navigation and restoration system around this anchoring layer to handle virtualized ChatGPT conversations, long-distance bidirectional seeking, cross-conversation restoration, and continuous scrolling.
+
+See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for attribution and license details.
 
 ## Status
 
 **v0.12.1 — Public Beta**
 
-The core interaction is working, but ChatGPT's frontend can change over time. If a ChatGPT UI update breaks navigation, please open an issue with reproduction steps.
+The current release focuses on the core interaction:
 
-For the engineering history from the first prototype through continuous adaptive seeking, see [docs/evolution.md](docs/evolution.md).
+**Select → Add → Jump → Replace.**
 
-## Roadmap
-
-The next target is a hardened **v1.0** release for the Chrome Web Store.
-
-The current priority is reliability and a fast three-point workflow—not folders, tags, search, or unlimited bookmarks.
+The next milestone is a stable **v1.0** release for the Chrome Web Store.
 
 ## License
 
-MIT
+Jump Points for ChatGPT is licensed under the MIT License. See [`LICENSE`](LICENSE).
+
+Third-party components and adapted code remain subject to their respective licenses. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

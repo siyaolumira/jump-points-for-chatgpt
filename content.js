@@ -36,8 +36,8 @@
     const text=sel.toString();
     if(!text.trim())return null;
 
-    // Threadmark-style context: textual context immediately around the
-    // selection, derived from Range rather than rebuilding a message map.
+    // Capture textual context around the selection to improve
+    // disambiguation when restoring the jump point.
     const before=document.createRange();
     before.selectNodeContents(a);
     before.setEnd(range.startContainer,range.startOffset);
@@ -63,9 +63,14 @@
     if(s&&!s.isCollapsed)setTimeout(updateSelection,0);
   },true);
 
-  // Adapted from Threadmark's robust range finder:
-  // flatten text nodes, find target globally, reconstruct a DOM Range,
-  // retry with whitespace stripped, and score candidates by prefix/suffix.
+  // Portions of the text re-anchoring implementation below are adapted
+  // from Threadmark's open-source anchoring implementation (MIT License).
+  // See THIRD_PARTY_NOTICES.md.
+  //
+  // Jump Points extends this anchoring layer with its own navigation and
+  // restoration system for virtualized content, long-distance seeking,
+  // bidirectional restoration, and cross-chat navigation.
+
   function mapStrippedToReal(original,strippedOffset){
     let count=0;
     for(let i=0;i<original.length;i++){
@@ -159,8 +164,8 @@
       range.surroundContents(newNode);
       return [newNode];
     }catch{
-      // Cross-element selections cannot always be surroundContents'd.
-      // Wrap intersecting text nodes separately, like Threadmark.
+      // Cross-element selections cannot always be wrapped with surroundContents().
+      // Fall back to wrapping each intersecting text segment separately.
       const common=range.commonAncestorContainer;
       const walker=document.createTreeWalker(common,NodeFilter.SHOW_TEXT,{
         acceptNode:n=>range.intersectsNode(n)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT
