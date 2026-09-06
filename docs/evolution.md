@@ -22,6 +22,7 @@ Jump Points began as a tiny experiment: can a Chrome extension reliably return t
 | v0.12 | Replaced segmented seeking with continuous adaptive cruise | Much smoother long-distance navigation. |
 | v0.12.1 | Increased cruise speed while preserving adaptive slowdown | Established the public-beta navigation baseline. |
 | v0.12.2 | Added interruptible seeking and further cruise tuning | Automatic navigation no longer takes control away from the user: any pointer interaction can stop an active seek, and selecting another Jump Point immediately starts a new one. |
+| v0.12.3 | Improved ambiguous-anchor matching and strengthened edge detection during long-distance seeking | Repeated short text is resolved using surrounding-context similarity instead of coarse exact-match scoring, while temporary virtualization stalls are less likely to be mistaken for the real end of a conversation. |
 
 ## The key discovery
 
@@ -36,10 +37,24 @@ The current implementation follows that separation:
 
 `conversation navigation → readiness gate → adaptive seek → anchor appears → range match → precise landing`
 
+## Anchor ambiguity
+
+Finding the saved text is not always enough.
+
+Short selections such as "yes", "okay" may appear many times in the same conversation. Earlier versions could find all matching candidates but still choose the wrong occurrence when surrounding context did not match exactly.
+
+v0.12.3 changed contextual matching from coarse exact/partial scores to character-level prefix and suffix similarity. When repeated text cannot be resolved with enough contextual evidence, Jump Points now prefers not to jump rather than confidently land on the wrong occurrence.
+
+This reinforced another separation in the restoration problem:
+
+`text match → contextual disambiguation → precise anchor`
+
 ## Current scope
 
 Jump Points currently works with **signed-in ChatGPT conversations**. Logged-out ChatGPT sessions are not supported.
 
 The extension intentionally maintains only **three global Jump Points**. They form a temporary working set for active navigation rather than a permanent bookmark collection.
+
+The selected text acts as an anchor for a position in the conversation. It is not intended to become part of a saved-content collection. Jump Points are movable navigation points: they can be placed wherever the user is working, jumped between repeatedly, and replaced as the user's focus moves.
 
 Automatic seeking is also deliberately interruptible. A jump may navigate through virtualized content on its own, but user interaction immediately takes control back.

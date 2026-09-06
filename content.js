@@ -82,6 +82,26 @@
   // restoration system for virtualized content, long-distance seeking,
   // bidirectional restoration, and cross-chat navigation.
 
+  function commonSuffixLength(a,b){
+    let i=0;
+    while(
+      i<a.length &&
+      i<b.length &&
+      a[a.length-1-i]===b[b.length-1-i]
+    ) i++;
+    return i;
+  }
+  
+  function commonPrefixLength(a,b){
+    let i=0;
+    while(
+      i<a.length &&
+      i<b.length &&
+      a[i]===b[i]
+    ) i++;
+    return i;
+  }
+
   function mapStrippedToReal(original,strippedOffset){
     let count=0;
     for(let i=0;i<original.length;i++){
@@ -140,14 +160,18 @@
           range.setEnd(endInfo.node,realEnd);
           let score=0;
           if(prefix){
-            const docPrefix=fullText.substring(Math.max(0,matchIndex-prefix.length),matchIndex);
-            if(docPrefix===prefix)score+=10;
-            else if(prefix.endsWith(docPrefix))score+=5;
-          }
+            const docPrefix=fullText.substring(
+              Math.max(0,matchIndex-prefix.length),
+              matchIndex
+            );
+            score+=commonSuffixLength(prefix,docPrefix);
+        }
           if(suffix){
-            const docSuffix=fullText.substring(endIndex,endIndex+suffix.length);
-            if(docSuffix===suffix)score+=10;
-            else if(suffix.startsWith(docSuffix))score+=5;
+            const docSuffix=fullText.substring(
+              endIndex,
+              endIndex+suffix.length
+            );
+            score+=commonPrefixLength(suffix,docSuffix);
           }
           candidates.push({range,score});
         }catch{}
@@ -158,11 +182,35 @@
   }
 
   function findBestRange(b){
-    let candidates=findRanges(document.body,b.text,false,{prefix:b.prefix,suffix:b.suffix});
-    if(!candidates.length)
-      candidates=findRanges(document.body,b.text,true,{prefix:b.prefix,suffix:b.suffix});
+    let candidates=findRanges(
+      document.body,
+      b.text,
+      false,
+      {prefix:b.prefix,suffix:b.suffix}
+    );
+  
+    if(!candidates.length){
+      candidates=findRanges(
+        document.body,
+        b.text,
+        true,
+        {prefix:b.prefix,suffix:b.suffix}
+      );
+    }
+  
     if(!candidates.length)return null;
+  
     candidates.sort((a,b)=>b.score-a.score);
+  
+    // A unique text match is safe even without contextual evidence.
+    if(candidates.length===1)
+      return candidates[0].range;
+  
+    // Repeated text must have enough surrounding-context evidence.
+    // It is safer to reject an ambiguous match than jump to the wrong place.
+    if(candidates[0].score<12)
+      return null;
+  
     return candidates[0].range;
   }
 
@@ -306,16 +354,25 @@
           }
         }
 
-        // Every ~500ms inspect virtualization/edge behavior and adapt speed.
+        // Every ~500ms inspect virtualization and edge behavior.
+        // Only treat a stable physical boundary as a real edge.
         if(ts-lastMetrics>=500){
           const height=h.scrollHeight;
           const top=h.scrollTop;
           const moved=Math.abs(top-lastTop)>=3;
           const heightChanged=Math.abs(height-lastHeight)>=3;
-
-          if(!moved && !heightChanged) stableEdge++;
-          else stableEdge=0;
-
+        
+          const maxScroll=Math.max(0,height-h.clientHeight);
+          const nearEdge=
+            direction<0
+              ? top<=3
+              : top>=maxScroll-3;
+        
+          if(nearEdge && !moved && !heightChanged)
+            stableEdge++;
+          else
+            stableEdge=0;
+        
           // Height changes mean ChatGPT is actively materializing content:
           // ease off a bit to let rendering keep up. When stable and moving,
           // gradually accelerate.
@@ -325,7 +382,7 @@
           lastTop=top;
           lastHeight=height;
           lastMetrics=ts;
-
+        
           if(stableEdge>=5){
             // Do one delayed final search before declaring a real edge.
             setTimeout(()=>{
