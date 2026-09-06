@@ -12,12 +12,14 @@ Three points, always within reach. No archive to maintain.
 
 ## What it does
 
-- **Three global Jump Points** — keep the few places that matter right now.
-- **Selection-based anchors** — select the text you want to return to.
+- **Three global Jump Points** — keep three positions within reach across your ChatGPT conversations.
+- **Movable navigation points** — place them where you're working and replace them as your focus moves.
+- **Selection-based anchors** — selected text marks a position rather than becoming part of a saved-content collection.
 - **Same-chat and cross-chat jumps** — use ChatGPT's sidebar normally; Jump Points handles the position.
-- **Long-distance restoration** — navigates through lazily rendered conversations until the saved text becomes available.
+- **Long-distance restoration** — navigates through lazily rendered conversations until the target position becomes available.
+- **Context-aware positioning** — uses surrounding text to distinguish between repeated selections and avoid jumping to the wrong occurrence.
 - **Interruptible navigation** — click anywhere while a jump is in progress to stop it and take control back.
-- **Fast replacement** — when all three slots are full, select new text and replace any existing point.
+- **Fast replacement** — select a new position and replace any existing Jump Point.
 - **Local storage** — Jump Point data stays in your browser.
 
 ## Requirements
@@ -30,15 +32,19 @@ Logged-out ChatGPT sessions are not currently supported.
 
 ### Add a Jump Point
 
-1. Select text anywhere in a ChatGPT conversation.
+1. Select text at the position you want to mark.
 2. Click **Add selected text**.
 3. Give the Jump Point a short name.
 
-### Jump back
+The selected text acts as an anchor for that position in the conversation.
 
-Click the name of any saved Jump Point. If it belongs to another conversation, Jump Points opens that conversation first and then restores the saved position.
+### Jump
 
-For very long conversations, you may see the page travel through older messages while ChatGPT renders them. Once the saved text becomes available, Jump Points lands on the exact anchor.
+Click the name of any Jump Point.
+
+If it belongs to another conversation, Jump Points opens that conversation first and then navigates to the marked position.
+
+For very long conversations, you may see the page travel through older messages while ChatGPT renders them. Once the target becomes available, Jump Points lands on the matching anchor.
 
 If you want to stop an in-progress jump, simply click anywhere. Clicking another Jump Point stops the current jump and starts the new one.
 
@@ -46,21 +52,21 @@ If you want to stop an in-progress jump, simply click anywhere. Clicking another
 
 You always have three slots.
 
-When all three are in use:
+When your focus moves:
 
-1. Select the new text you want to keep.
+1. Select the new position you want within reach.
 2. Choose **Replace** on the Jump Point you no longer need.
 3. The old point is immediately replaced by the new one.
 
-There is no need to delete old bookmarks, create folders, or maintain a growing archive.
+Jump Points are designed to move with your work rather than accumulate over time.
 
 ## Why only three?
 
 The limit is intentional.
 
-Jump Points are a **working set, not an archive**. They are meant to hold the few places you are actively moving between while working through long conversations.
+Jump Points are a **working set, not an archive**. They hold the few positions you are actively moving between while working through long conversations.
 
-When a point stops being useful, replace it.
+When a point stops being useful, move it somewhere else.
 
 > **Jump Points are disposable, not collectible.**
 
@@ -77,17 +83,19 @@ Jump Points is being prepared for distribution through the Chrome Web Store.
 3. Turn on **Developer mode**.
 4. Choose **Load unpacked**.
 5. Select the extension **folder**.
-6. Open ChatGPT, select some text, and create your first Jump Point.
+6. Sign in to ChatGPT, open a conversation, select some text, and create your first Jump Point.
 
 ## How it works
 
-A Jump Point stores the selected text together with surrounding context and the originating ChatGPT conversation. When you jump back, the extension searches the rendered DOM for the anchor and reconstructs the matching range.
+A Jump Point uses the selected text and its surrounding context as an anchor for a position in the originating ChatGPT conversation. The text marks where the Jump Point belongs — it is not being added to a saved-content collection.
 
-Very long ChatGPT conversations may not have older messages rendered yet. In that case, Jump Points uses a continuous adaptive seek to move through the conversation while periodically checking for the anchor.
+When you jump back, the extension searches the rendered conversation for the anchor, uses surrounding context to distinguish between repeated matches, and reconstructs the matching DOM range.
+
+Very long ChatGPT conversations may not have older messages rendered yet. In that case, Jump Points continuously navigates through the conversation while periodically checking for the target. Temporary rendering pauses are distinguished from the actual edge of the conversation so that seeking can continue as older content becomes available.
 
 Once the target becomes available:
 
-`conversation → adaptive seek → anchor found → precise landing`
+`conversation → adaptive seek → anchor appears → contextual match → precise landing`
 
 Cross-chat jumps also wait for the destination conversation to finish initializing before position restoration begins.
 
@@ -106,17 +114,17 @@ Because Jump Points needs to create and restore anchors, it operates on ChatGPT 
 
 ## Status
 
-**v0.12.2 — Public Beta**
+**v0.12.3 — Public Beta**
 
-The core **Select → Add → Jump → Replace** interaction is working. Navigation through long conversations is interruptible, and same-chat and cross-chat restoration are supported.
+The core **Select → Add → Jump → Replace** interaction is working. Navigation through long conversations is interruptible, repeated text is disambiguated using surrounding context, and same-chat and cross-chat restoration are supported.
 
 ChatGPT's frontend can change over time. If a ChatGPT UI update breaks navigation, please open an issue with reproduction steps.
 
-For the engineering history from the first prototype through continuous adaptive seeking, see [docs/evolution.md](docs/evolution.md).
+For the engineering history, see [docs/evolution.md](docs/evolution.md).
 
 ## Roadmap
 
-The current priority is reliability and a fast three-point workflow.
+The current priority is reliability and a fast three-point navigation workflow.
 
 The next milestone is a hardened **v1.0** release. Jump Points will remain focused on navigation rather than growing into a bookmark archive with folders, tags, search, or unlimited saved points.
 
