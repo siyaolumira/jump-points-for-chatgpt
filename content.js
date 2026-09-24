@@ -4,6 +4,7 @@
   window.__threeJumpV121Loaded=true;
   const state={bookmarks:[], selection:null};
   let activeSeek=null;
+  let resumeRunning=false;
 
   function cancelSeek(){
     if(!activeSeek)return;
@@ -489,70 +490,112 @@
   }
 
   async function waitForCrossChatReady(expectedConversationId){
-    // URL must first resolve to the intended conversation.
-    for(let i=0;i<40;i++){
-      if(!expectedConversationId || convId()===expectedConversationId) break;
-      await wait(150);
-    }
-
-    // Then require actual message DOM.
+    // 1. Must actually be on the intended conversation.
+    let routeReady=false;
     for(let i=0;i<60;i++){
-      if(roots().length>0 && scrollHost()) break;
+      if(!expectedConversationId || convId()===expectedConversationId){
+        routeReady=true;
+        break;
+      }
       await wait(150);
     }
-
-    // Finally require several consecutive stable snapshots. This prevents our
-    // seek from fighting ChatGPT's own initial "restore to latest" behavior.
-    let stable=0,last=null;
+    if(!routeReady)return false;
+  
+    // 2. The intended conversation must have real message DOM.
+    let messagesReady=false;
     for(let i=0;i<80;i++){
+      if(
+        (!expectedConversationId || convId()===expectedConversationId) &&
+        roots().length>0 &&
+        scrollHost()
+      ){
+        messagesReady=true;
+        break;
+      }
+      await wait(150);
+    }
+    if(!messagesReady)return false;
+  
+    // 3. Wait until ChatGPT stops reshaping/restoring the conversation.
+    let stable=0,last=null;
+    for(let i=0;i<100;i++){
+      // Route changed again while we were waiting.
+      if(expectedConversationId && convId()!==expectedConversationId)
+        return false;
       const s=conversationReadySnapshot();
       const same=last &&
         s.messageCount===last.messageCount &&
         Math.abs(s.height-last.height)<4 &&
         Math.abs(s.top-last.top)<4 &&
         s.host===last.host;
-
       stable=same?stable+1:0;
       last=s;
+  
       if(stable>=5){
-        // A small quiet period catches delayed native scroll restoration.
         await wait(450);
+        if(expectedConversationId && convId()!==expectedConversationId)
+          return false;
         const verify=conversationReadySnapshot();
-        if(verify.messageCount===s.messageCount &&
-           Math.abs(verify.height-s.height)<4 &&
-           Math.abs(verify.top-s.top)<4 &&
-           verify.host===s.host) return true;
+        if(
+          verify.messageCount===s.messageCount &&
+          Math.abs(verify.height-s.height)<4 &&
+          Math.abs(verify.top-s.top)<4 &&
+          verify.host===s.host
+        ){
+          return true;
+        }
         stable=0;
         last=verify;
       }
       await wait(140);
     }
-    return roots().length>0;
+  
+    return false;
   }
 
   async function resume(){
+    if(resumeRunning)return;
     const d=await get([PENDING,KEY]);
-    const id=d[PENDING];if(!id)return;
+    const id=d[PENDING];
+    if(!id)return;
+  
     const b=(d[KEY]||[]).find(x=>x.id===id);
-    if(!b){await set({[PENDING]:null});return}
 
+    if(!b){
+      await set({[PENDING]:null});
+      return;
+    }
+  
     const target=b.conversationId||convId(b.conversationUrl);
-    if(target&&convId()!==target)return;
-
-    // Cross-chat only: do not touch scroll position until ChatGPT's route,
-    // messages, scroll host, and native scroll restoration have settled.
-    await waitForCrossChatReady(target);
-
-    const seek={cancelled:false};
-    activeSeek=seek;
-    
-    const ok=await progressiveSeek(b,seek);
-    
-    if(activeSeek===seek)activeSeek=null;
-    
-    await set({[PENDING]:null});
-    if(!ok&&!seek.cancelled)
-      toast("Opened chat, but jump point couldn't be restored.");
+  
+    // Pending intent belongs to another route.
+    // Keep it alive instead of consuming it.
+    if(target && convId()!==target)return;
+    resumeRunning=true;
+    try{
+      const ready=await waitForCrossChatReady(target);
+  
+      // IMPORTANT:
+      // Don't consume the pending jump just because readiness failed.
+      // A later route/DOM event can retry it.
+      if(!ready)return;
+      const seek={cancelled:false};
+      activeSeek=seek;
+  
+      const ok=await progressiveSeek(b,seek);
+  
+      if(activeSeek===seek)activeSeek=null;
+  
+      if(ok){
+        // Consume the intent only after successful restoration.
+        await set({[PENDING]:null});
+      }else if(!seek.cancelled){
+        toast("Opened chat, but jump point couldn't be restored.");
+      }
+  
+    }finally{
+      resumeRunning=false;
+    }
   }
 
   async function saveIntoSlot(slot=null){
@@ -631,26 +674,32 @@
       const jumpBtn=document.createElement("button");
       jumpBtn.className="tjb-jump";
       jumpBtn.innerHTML=`<span class="tjb-index">${i+1}</span><span class="tjb-name">${esc(b.name)}</span>`;
+      jumpBtn.title=b.name;
       jumpBtn.onclick=()=>jump(b);
       row.appendChild(jumpBtn);
 
       if(state.selection){
         const replace=document.createElement("button");
         replace.className="tjb-replace";
-        replace.textContent="Replace";
+        replace.textContent="✎";
         replace.title=`Replace ${b.name} with selected text`;
-        replace.onclick=e=>{e.stopPropagation();saveIntoSlot(i)};
+        replace.onclick=e=>{
+          e.stopPropagation();
+          saveIntoSlot(i);
+        };
         row.appendChild(replace);
-      }else{
-        const removeBtn=document.createElement("button");
-        removeBtn.className="tjb-remove";
-        removeBtn.textContent="×";
-        removeBtn.title="Remove";
-        removeBtn.onclick=e=>remove(b.id,e);
-        row.appendChild(removeBtn);
       }
-      list.appendChild(row);
-    });
+      
+      // Delete should always remain available.
+      // Selecting text enables Replace, but should not hide point management.
+      const removeBtn=document.createElement("button");
+      removeBtn.className="tjb-remove";
+      removeBtn.textContent="×";
+      removeBtn.title="Remove";
+      removeBtn.onclick=e=>remove(b.id,e);
+      row.appendChild(removeBtn);
+      list.appendChild(row);});
+
 
     if(state.bookmarks.length<MAX){
       const a=document.createElement("button");
@@ -666,9 +715,23 @@
     }
   }
 
+  let resumeTimer=null;
   new MutationObserver(()=>{
     if(!document.querySelector("#tjb-panel"))render();
-  }).observe(document.documentElement,{childList:true,subtree:true});
 
-  get([KEY]).then(d=>{state.bookmarks=(d[KEY]||[]).slice(0,MAX);render();resume()});
-})();
+    // ChatGPT is an SPA. Cross-chat navigation can finish after the
+    // content script's initial resume() attempt, so retry any pending
+    // jump when meaningful DOM changes occur.
+    clearTimeout(resumeTimer);
+
+    resumeTimer=setTimeout(()=>{
+      resume();},250);
+    }).observe(document.documentElement,{
+    childList:true,
+    subtree:true});
+    get([KEY]).then(d=>{
+      state.bookmarks=(d[KEY]||[]).slice(0,MAX);
+      render();
+      resume();
+    });
+  })();

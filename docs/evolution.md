@@ -23,6 +23,7 @@ Jump Points began as a tiny experiment: can a Chrome extension reliably return t
 | v0.12.1 | Increased cruise speed while preserving adaptive slowdown | Established the public-beta navigation baseline. |
 | v0.12.2 | Added interruptible seeking and further cruise tuning | Automatic navigation no longer takes control away from the user: any pointer interaction can stop an active seek, and selecting another Jump Point immediately starts a new one. |
 | v0.12.3 | Improved ambiguous-anchor matching and strengthened edge detection during long-distance seeking | Repeated short text is resolved using surrounding-context similarity instead of coarse exact-match scoring, while temporary virtualization stalls are less likely to be mistaken for the real end of a conversation. |
+| v0.12.4 | Fixed point-removal state bugs and improved panel responsiveness | Fixed cases where the delete icon could disappear after extended use or when all three Jump Points were filled. Added dynamic panel width to reduce obstruction, with full Jump Point names shown on hover when truncated. |
 
 ## The key discovery
 

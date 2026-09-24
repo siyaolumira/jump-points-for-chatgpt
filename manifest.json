@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Jump Points for ChatGPT",
-  "version": "0.12.3",
-  "description": "Place three movable points in long ChatGPT conversations and jump between them instantly.",
+  "version": "0.12.4",
+  "description": "Place three movable points in long ChatGPT conversations and jump back to them, even across chats.",
   "permissions": [
     "storage"
   ],
