@@ -69,7 +69,9 @@ When a point stops being useful, move it somewhere else.
 
 ### Chrome Web Store
 
-Jump Points is being prepared for distribution through the Chrome Web Store.
+Jump Points is available on the Chrome Web Store.
+
+[Install Jump Points for ChatGPT](https://chromewebstore.google.com/detail/jump-points-for-chatgpt/nimboknibfklpgojdheccejojlnekiba)
 
 ### Install from source
 
