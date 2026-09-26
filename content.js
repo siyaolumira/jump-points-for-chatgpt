@@ -27,14 +27,26 @@
 
   function rootFor(node){
     const el=node?.nodeType===1?node:node?.parentElement;
-    return el?.closest?.('[data-message-author-role="assistant"],[data-message-author-role="user"],main article')||null;
+    return el?.closest?.(
+      '[data-chatgpt-selection-message-id], [data-message-author-role="assistant"], [data-message-author-role="user"], main article'
+    )||null;
   }
 
   function roots(){
     let r=[...document.querySelectorAll(
-      '[data-message-author-role="assistant"],[data-message-author-role="user"]'
+      '[data-chatgpt-selection-message-id]'
     )];
-    if(!r.length) r=[...document.querySelectorAll("main article")];
+  
+    if(!r.length){
+      r=[...document.querySelectorAll(
+        '[data-message-author-role="assistant"],[data-message-author-role="user"]'
+      )];
+    }
+  
+    if(!r.length){
+      r=[...document.querySelectorAll("main article")];
+    }
+  
     return r;
   }
 

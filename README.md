@@ -1,6 +1,6 @@
 # Jump Points for ChatGPT
 
-**Keep three places in reach. Jump back instantly.**
+**Keep three places in reach. Jump back when you need them.**
 
 Jump Points gives you three movable points inside your ChatGPT conversations.
 
@@ -10,7 +10,7 @@ Place them anywhere in conversations, jump back and forth between them, and move
 
 ## What it does
 
-- **Three global Jump Points** — three Jump Points can live **across different chats**, so the places you need are always within reach.
+- **Three global Jump Points** — place your three points within the same chat or across different chats.
 - **Long-distance restoration** — navigates through lazily rendered conversations until the target position becomes available.
 - **Context-aware positioning** — uses surrounding text to distinguish between repeated selections and avoid jumping to the wrong occurrence.
 - **Interruptible navigation** — click anywhere while a jump is in progress to stop it and take control back.
@@ -39,20 +39,26 @@ You always have three slots.
 When your focus moves:
 
 4. Select the new position you want within reach.
-5. Choose **✎** on the Jump Point you no longer need.
+5. Click **✎** on the Jump Point you want to move.
 <img src="docs/step2.png" alt="Jump Points for ChatGPT" width="700">
 
-### Jump/Delete
+### Jump / Delete
 
 6. Click the name of any Jump Point.
 
-If it belongs to another conversation, Jump Points opens that conversation first and then navigates to the marked position.
+For a Jump Point in the current chat, one click jumps to the marked position.
+
+For a Jump Point in a different chat, cross-chat navigation currently works in two steps:
+
+1. Click the Jump Point once to open the destination chat.
+2. Click the same Jump Point again to jump to the marked position.
 
 For very long conversations, you may see the page travel through older messages while ChatGPT renders them. Once the target becomes available, Jump Points lands on the matching anchor.
 
 If you want to stop an in-progress jump, simply click anywhere. Clicking another Jump Point stops the current jump and starts the new one.
 
-7. Click to remove the existing points
+7. Click **×** to remove a Jump Point.
+
 <img src="docs/step3.png" alt="Jump Points for ChatGPT" width="700">
 
 ## Why only three?
@@ -69,7 +75,9 @@ When a point stops being useful, move it somewhere else.
 
 ### Chrome Web Store
 
-Jump Points is available on the Chrome Web Store.
+Jump Points is available on the Chrome Web Store. 
+
+**v0.12.5 is currently under review and will be available through the Chrome Web Store once approved.**
 
 [Install Jump Points for ChatGPT](https://chromewebstore.google.com/detail/jump-points-for-chatgpt/nimboknibfklpgojdheccejojlnekiba)
 
@@ -95,11 +103,13 @@ Because Jump Points needs to create and restore anchors, it operates on ChatGPT 
 
 ## Status
 
-**v0.12.4 — Public Beta**
+**v0.12.5 — Public Beta (Chrome Web Store update under review)**
 
-The core **Select → Add → Jump → Replace** interaction is working. Navigation through long conversations is interruptible, repeated text is disambiguated using surrounding context, and same-chat and cross-chat restoration are supported.
+The core **Select → Add → Jump → Replace** interaction is working. Navigation through long conversations is interruptible, and repeated text is disambiguated using surrounding context. Same-chat jumps restore positions directly, while cross-chat jumps currently use the two-step flow described above.
 
-v0.12.4 refines the Jump Points panel for a more compact working set, keeps removal available at all times, and improves interaction with long Jump Point names.
+v0.12.5 adds compatibility with ChatGPT's updated message DOM while retaining legacy selectors as fallbacks.
+
+The Chrome Web Store update for v0.12.5 is currently under review.
 
 For the engineering history, see [docs/evolution.md](docs/evolution.md).
 
