@@ -5,6 +5,7 @@
 Jump Points gives you three movable points inside your ChatGPT conversations.
 
 Place them anywhere in conversations, jump back and forth between them, and move them as your work moves. The selected text marks a position — it isn't being added to a collection.
+Update: v0.12.5 includes a compatibility fix for a recent ChatGPT frontend change and is currently under Chrome Web Store review. The latest source version is available here on GitHub.
 
 <img src="docs/overview.png" alt="Jump Points for ChatGPT" width="700">
 
